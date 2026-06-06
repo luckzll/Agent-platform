@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.luckzll.demo.mapper.postgresql.PgKnowledgeDocumentMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.luckzll.demo.entity.KnowledgeDocument">
+        <id column="id" property="id"/>
+        <result column="doc_name" property="docName"/>
+        <result column="original_name" property="originalName"/>
+        <result column="doc_type" property="docType"/>
+        <result column="doc_size" property="docSize"/>
+        <result column="storage_path" property="storagePath"/>
+        <result column="summary" property="summary"/>
+        <result column="status" property="status"/>
+        <result column="chunk_count" property="chunkCount"/>
+        <result column="user_id" property="userId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="error_msg" property="errorMsg"/>
+    </resultMap>
+
+    <!-- 根据状态查询文档列表 -->
+    <select id="selectByStatus" resultMap="BaseResultMap">
+        SELECT * FROM knowledge_document 
+        WHERE status = #{status} 
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 更新文档状态 -->
+    <update id="updateStatus">
+        UPDATE knowledge_document 
+        SET status = #{status}, update_time = NOW() 
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新文档状态和分块数量 -->
+    <update id="updateStatusAndChunkCount">
+        UPDATE knowledge_document 
+        SET status = #{status}, chunk_count = #{chunkCount}, update_time = NOW() 
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新错误信息 -->
+    <update id="updateError">
+        UPDATE knowledge_document 
+        SET status = 'failed', error_msg = #{errorMsg}, update_time = NOW() 
+        WHERE id = #{id}
+    </update>
+
+    <!-- 查询所有已完成状态的文档 -->
+    <select id="selectCompletedDocs" resultMap="BaseResultMap">
+        SELECT * FROM knowledge_document 
+        WHERE status = 'completed' 
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据用户ID查询文档列表 -->
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT * FROM knowledge_document 
+        WHERE user_id = #{userId} 
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据用户ID查询已完成状态的文档 -->
+    <select id="selectCompletedDocsByUserId" resultMap="BaseResultMap">
+        SELECT * FROM knowledge_document 
+        WHERE user_id = #{userId} AND status = 'completed' 
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

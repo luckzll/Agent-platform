@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.luckzll.demo.mapper.mysql.MysqlUserMapper">
+
+    <!-- 根据手机号查询用户 -->
+    <select id="selectByPhone" resultType="com.luckzll.demo.entity.User">
+        SELECT * FROM user WHERE user_phone = #{userPhone}
+    </select>
+
+    <!-- 检查手机号是否已存在 -->
+    <select id="countByPhone" resultType="int">
+        SELECT COUNT(*) FROM user WHERE user_phone = #{userPhone}
+    </select>
+
+</mapper>

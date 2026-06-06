@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.luckzll.demo.mapper.mysql.MysqlChatMessageMapper">
+
+    <!-- 根据用户ID和会话ID查询聊天记录 -->
+    <select id="selectByUserAndSession" resultType="com.luckzll.demo.entity.ChatMessage">
+        SELECT * FROM chat_message WHERE user_id = #{userId} AND session_id = #{sessionId} ORDER BY create_time ASC
+    </select>
+
+    <!-- 查询用户的所有会话ID -->
+    <select id="selectSessionsByUserId" resultType="string">
+        SELECT DISTINCT session_id FROM chat_message WHERE user_id = #{userId} ORDER BY MAX(create_time) DESC
+    </select>
+
+</mapper>

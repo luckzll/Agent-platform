@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识库管理</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0 30px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar .logo {
+            color: white;
+            font-size: 22px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .navbar .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        /* 上传区域 */
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            background: #eef1ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #e8ecff;
+            border-color: #764ba2;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 13px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* 文档名称输入 */
+        .doc-name-input {
+            margin-top: 20px;
+        }
+
+        .doc-name-input label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .doc-name-input input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .doc-name-input input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        /* 上传按钮 */
+        .upload-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* 文档列表 */
+        .doc-list {
+            margin-top: 20px;
+        }
+
+        .doc-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .doc-item:hover {
+            background: #eef1ff;
+            transform: translateX(5px);
+        }
+
+        .doc-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            margin-right: 15px;
+        }
+
+        .doc-info {
+            flex: 1;
+        }
+
+        .doc-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .doc-meta {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .doc-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 10px;
+        }
+
+        .doc-status.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .doc-status.processing {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .doc-status.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .doc-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .doc-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .doc-btn.reprocess {
+            background: #667eea;
+            color: white;
+        }
+
+        .doc-btn.delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .doc-btn:hover {
+            opacity: 0.8;
+        }
+
+        /* 搜索区域 */
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .search-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 搜索结果 */
+        .search-results {
+            margin-top: 20px;
+        }
+
+        .result-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-score {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #667eea;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .result-content {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 统计信息 */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        /* 消息提示 */
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0 15px;
+            }
+
+            .main-content {
+                margin: 15px auto;
+                padding: 0 15px;
+            }
+
+            .section-card {
+                padding: 20px;
+            }
+
+            .upload-area {
+                padding: 30px 20px;
+            }
+
+            .doc-item {
+                flex-wrap: wrap;
+            }
+
+            .doc-actions {
+                width: 100%;
+                margin-top: 10px;
+                justify-content: flex-end;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="logo" onclick="window.location.href='/home.html'">📚 知识库管理</div>
+            <button class="back-btn" onclick="window.location.href='/home.html'">返回首页</button>
+        </nav>
+
+        <!-- 主内容 -->
+        <div class="main-content">
+            <!-- 消息提示 -->
+            <div v-if="message" class="message" :class="messageType">
+                {{ message }}
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="section-card">
+                <div class="section-title">📊 知识库统计</div>
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="stat-number">{{ stats.totalDocuments }}</div>
+                        <div class="stat-label">总文档数</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{{ stats.completedDocuments }}</div>
+                        <div class="stat-label">已完成</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{{ stats.processingDocuments }}</div>
+                        <div class="stat-label">处理中</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{{ stats.totalChunks }}</div>
+                        <div class="stat-label">总片段数</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 上传区域 -->
+            <div class="section-card">
+                <div class="section-title">📤 上传文档</div>
+                <div 
+                    class="upload-area" 
+                    @click="$refs.fileInput.click()"
+                    @drop.prevent="handleDrop"
+                    @dragover.prevent="handleDragOver"
+                    @dragleave.prevent="handleDragLeave"
+                    :class="{ dragover: isDragging }"
+                >
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">点击或拖拽上传 Word/PDF/TXT 文档</div>
+                    <div class="upload-hint">支持 .docx .doc .pdf .txt .md 格式，最大 100MB</div>
+                </div>
+                <input 
+                    ref="fileInput" 
+                    type="file" 
+                    class="file-input" 
+                    accept=".docx,.doc,.pdf,.txt,.md"
+                    @change="handleFileSelect"
+                >
+                
+                <div v-if="selectedFile" class="doc-name-input">
+                    <label>文档名称（可选）</label>
+                    <input 
+                        type="text" 
+                        v-model="docName" 
+                        placeholder="默认为文件名"
+                    >
+                </div>
+
+                <div v-if="selectedFile" style="margin-top: 15px;">
+                    <span style="color: #667eea;">已选择: {{ selectedFile.name }}</span>
+                    <button 
+                        class="upload-btn" 
+                        @click="uploadFile"
+                        :disabled="uploading"
+                    >
+                        <span v-if="uploading" class="loading"></span>
+                        {{ uploading ? '上传中...' : '开始上传' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- 文档列表 -->
+            <div class="section-card">
+                <div class="section-title">📋 文档列表</div>
+                <div v-if="documents.length === 0" class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <p>暂无文档，请先上传</p>
+                </div>
+                <div v-else class="doc-list">
+                    <div v-for="doc in documents" :key="doc.id" class="doc-item">
+                        <div class="doc-icon">📄</div>
+                        <div class="doc-info">
+                            <div class="doc-name">{{ doc.docName }}</div>
+                            <div class="doc-meta">
+                                {{ doc.originalName }} | {{ formatSize(doc.docSize) }} | {{ formatDate(doc.createTime) }}
+                            </div>
+                        </div>
+                        <span class="doc-status" :class="doc.status">
+                            {{ statusText(doc.status) }}
+                        </span>
+                        <div class="doc-actions">
+                            <button 
+                                class="doc-btn reprocess" 
+                                @click="reprocess(doc.id)"
+                                :disabled="doc.status === 'processing'"
+                            >
+                                重新处理
+                            </button>
+                            <button class="doc-btn delete" @click="deleteDoc(doc.id)">删除</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RAG 检索测试 -->
+            <div class="section-card">
+                <div class="section-title">🔍 RAG 检索测试</div>
+                <div class="search-box">
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        v-model="searchQuery"
+                        placeholder="输入问题，测试知识库检索效果..."
+                        @keyup.enter="search"
+                    >
+                    <button class="search-btn" @click="search" :disabled="searching">
+                        <span v-if="searching" class="loading"></span>
+                        {{ searching ? '检索中...' : '检索' }}
+                    </button>
+                </div>
+                
+                <div v-if="searchResults.length > 0" class="search-results">
+                    <div v-for="(result, index) in searchResults" :key="index" class="result-item">
+                        <span class="result-score">相似度: {{ formatSimilarity(result.similarity) }}</span>
+                        <div class="result-content">{{ result.content }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 客户端信息请求头配置
+        const CLIENT_HEADERS = {
+            'X-Client-Type': 'web',
+            'X-Client-Version': '1.2.0',
+            'X-os-Type': 'window',
+            'X-os-Version': '11',
+            'X-Device-Type': 'vivo'
+        };
+
+        new Vue({
+            el: '#app',
+            data: {
+                message: '',
+                messageType: '',
+                isDragging: false,
+                selectedFile: null,
+                docName: '',
+                uploading: false,
+                documents: [],
+                stats: {
+                    totalDocuments: 0,
+                    completedDocuments: 0,
+                    processingDocuments: 0,
+                    failedDocuments: 0,
+                    totalChunks: 0
+                },
+                searchQuery: '',
+                searching: false,
+                searchResults: []
+            },
+            created() {
+                this.checkAuth();
+                this.loadDocuments();
+                this.loadStats();
+            },
+            methods: {
+                checkAuth() {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        window.location.href = '/index.html';
+                    }
+                },
+
+                getHeaders() {
+                    return {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                        ...CLIENT_HEADERS
+                    };
+                },
+
+                showMessage(msg, type) {
+                    this.message = msg;
+                    this.messageType = type;
+                    setTimeout(() => {
+                        this.message = '';
+                    }, 3000);
+                },
+
+                handleDragOver(e) {
+                    this.isDragging = true;
+                },
+
+                handleDragLeave(e) {
+                    this.isDragging = false;
+                },
+
+                handleDrop(e) {
+                    this.isDragging = false;
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        this.selectedFile = files[0];
+                        this.docName = '';
+                    }
+                },
+
+                handleFileSelect(e) {
+                    const files = e.target.files;
+                    if (files.length > 0) {
+                        this.selectedFile = files[0];
+                        this.docName = '';
+                    }
+                },
+
+                async uploadFile() {
+                    if (!this.selectedFile) {
+                        this.showMessage('请选择文件', 'error');
+                        return;
+                    }
+
+                    this.uploading = true;
+                    const formData = new FormData();
+                    formData.append('file', this.selectedFile);
+                    if (this.docName.trim()) {
+                        formData.append('docName', this.docName.trim());
+                    }
+
+                    try {
+                        const response = await axios.post('/api/v1/knowledge/upload', formData, {
+                            headers: this.getHeaders()
+                        });
+
+                        if (response.data.code === 200) {
+                            this.showMessage('上传成功！文档正在处理中', 'success');
+                            this.selectedFile = null;
+                            this.docName = '';
+                            this.$refs.fileInput.value = '';
+                            this.loadDocuments();
+                            this.loadStats();
+                        } else {
+                            this.showMessage(response.data.msg || '上传失败', 'error');
+                        }
+                    } catch (error) {
+                        console.error('上传失败:', error);
+                        if (error.response?.status === 401) {
+                            this.showMessage('登录已过期，请重新登录', 'error');
+                            setTimeout(() => {
+                                window.location.href = '/index.html';
+                            }, 1500);
+                        } else {
+                            this.showMessage(error.response?.data?.msg || '上传失败', 'error');
+                        }
+                    } finally {
+                        this.uploading = false;
+                    }
+                },
+
+                async loadDocuments() {
+                    try {
+                        const response = await axios.get('/api/v1/knowledge/documents', {
+                            headers: this.getHeaders()
+                        });
+                        if (response.data.code === 200) {
+                            this.documents = response.data.data || [];
+                        }
+                    } catch (error) {
+                        console.error('加载文档列表失败:', error);
+                    }
+                },
+
+                async loadStats() {
+                    try {
+                        const response = await axios.get('/api/v1/knowledge/stats', {
+                            headers: this.getHeaders()
+                        });
+                        if (response.data.code === 200) {
+                            this.stats = response.data.data || this.stats;
+                        }
+                    } catch (error) {
+                        console.error('加载统计信息失败:', error);
+                    }
+                },
+
+                async reprocess(docId) {
+                    try {
+                        const response = await axios.post(`/api/v1/knowledge/documents/${docId}/reprocess`, {}, {
+                            headers: this.getHeaders()
+                        });
+                        if (response.data.code === 200) {
+                            this.showMessage('重新处理已启动', 'success');
+                            this.loadDocuments();
+                        } else {
+                            this.showMessage(response.data.msg || '操作失败', 'error');
+                        }
+                    } catch (error) {
+                        this.showMessage('操作失败', 'error');
+                    }
+                },
+
+                async deleteDoc(docId) {
+                    if (!confirm('确定要删除这个文档吗？')) {
+                        return;
+                    }
+                    try {
+                        const response = await axios.delete(`/api/v1/knowledge/documents/${docId}`, {
+                            headers: this.getHeaders()
+                        });
+                        if (response.data.code === 200) {
+                            this.showMessage('删除成功', 'success');
+                            this.loadDocuments();
+                            this.loadStats();
+                        } else {
+                            this.showMessage(response.data.msg || '删除失败', 'error');
+                        }
+                    } catch (error) {
+                        this.showMessage('删除失败', 'error');
+                    }
+                },
+
+                async search() {
+                    if (!this.searchQuery.trim()) {
+                        this.showMessage('请输入检索内容', 'error');
+                        return;
+                    }
+
+                    this.searching = true;
+                    this.searchResults = [];
+
+                    try {
+                        const response = await axios.get('/api/v1/knowledge/search', {
+                            headers: this.getHeaders(),
+                            params: {
+                                query: this.searchQuery.trim(),
+                                topK: 5
+                            }
+                        });
+
+                        if (response.data.code === 200) {
+                            this.searchResults = response.data.data.results || [];
+                            if (this.searchResults.length === 0) {
+                                this.showMessage('未找到相关结果', 'error');
+                            }
+                        } else {
+                            this.showMessage(response.data.msg || '检索失败', 'error');
+                        }
+                    } catch (error) {
+                        console.error('检索失败:', error);
+                        this.showMessage('检索失败', 'error');
+                    } finally {
+                        this.searching = false;
+                    }
+                },
+
+                formatSize(bytes) {
+                    if (bytes < 1024) return bytes + ' B';
+                    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+                    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+                },
+
+                formatDate(dateStr) {
+                    if (!dateStr) return '-';
+                    const date = new Date(dateStr);
+                    return date.toLocaleString('zh-CN');
+                },
+
+                statusText(status) {
+                    const map = {
+                        'completed': '已完成',
+                        'processing': '处理中',
+                        'failed': '失败'
+                    };
+                    return map[status] || status;
+                },
+
+                formatSimilarity(similarity) {
+                    if (similarity === null || similarity === undefined || isNaN(similarity)) {
+                        return 'N/A';
+                    }
+                    return (similarity * 100).toFixed(2) + '%';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

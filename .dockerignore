@@ -1,0 +1,11 @@
+target/
+.idea/
+*.iml
+.mvn/
+mvnw
+mvnw.cmd
+.git/
+.gitignore
+.gitattributes
+HELP.md
+uploads/

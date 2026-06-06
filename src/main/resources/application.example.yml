@@ -1,0 +1,124 @@
+server:
+  port: 8080
+
+jwt:
+  secret: ${JWT_SECRET:change-me-before-production-use-32bytes}
+
+alipay:
+  server-url: ${ALIPAY_SERVER_URL:https://openapi.alipay.com/gateway.do}
+  app-id: ${ALIPAY_APP_ID:}
+  private-key: ${ALIPAY_PRIVATE_KEY:}
+  alipay-public-key: ${ALIPAY_PUBLIC_KEY:}
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+  datasource:
+    mysql:
+      jdbc-url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:luckzll}?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+      username: ${MYSQL_USERNAME:root}
+      password: ${MYSQL_PASSWORD:change-me}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      hikari:
+        maximum-pool-size: 10
+        minimum-idle: 5
+    postgresql:
+      jdbc-url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DATABASE:luckzll}
+      username: ${POSTGRES_USERNAME:postgres}
+      password: ${POSTGRES_PASSWORD:change-me}
+      driver-class-name: org.postgresql.Driver
+      hikari:
+        maximum-pool-size: 10
+        minimum-idle: 5
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: ${RABBITMQ_VIRTUAL_HOST:/}
+    connection-timeout: 5000
+    listener:
+      simple:
+        acknowledge-mode: auto
+        concurrency: 1
+        max-concurrency: 10
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+logging:
+  level:
+    com.luckzll.demo.mapper: debug
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%X{clientType}]){cyan} %clr([v%X{clientVersion}]){green} %clr([%X{osType}]){blue} %clr([%X{osVersion}]){yellow} %clr([%X{deviceType}]){magenta} %clr([uid:%X{userId}]){faint} %clr(%-5level){highlight} %clr(%logger{36}){cyan} - %msg%n"
+
+deepseek:
+  api:
+    key: ${DEEPSEEK_API_KEY:change-me}
+    url: ${DEEPSEEK_API_URL:https://api.siliconflow.cn/v1/chat/completions}
+    model: ${DEEPSEEK_MODEL:Qwen/Qwen3.6-27B}
+
+video:
+  parser:
+    api:
+      url: ${VIDEO_PARSER_API_URL:change-me}
+      appId: ${VIDEO_PARSER_APP_ID:change-me}
+      appKey: ${VIDEO_PARSER_APP_KEY:change-me}
+
+rag:
+  enabled: true
+  retrieval:
+    topk: 3
+    default-topk: 5
+    min-score: 0.3
+    max-chars: 3000
+    use-cache: true
+
+embedding:
+  api:
+    url: ${EMBEDDING_API_URL:https://api.siliconflow.cn/v1/embeddings}
+    model: ${EMBEDDING_MODEL:BAAI/bge-m3}
+  dimension: 1024
+  batch:
+    size: 100
+
+aliyun:
+  oss:
+    endpoint: ${ALIYUN_OSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
+    access-key-id: ${ALIYUN_OSS_ACCESS_KEY_ID:change-me}
+    access-key-secret: ${ALIYUN_OSS_ACCESS_KEY_SECRET:change-me}
+    bucket-name: ${ALIYUN_OSS_BUCKET_NAME:change-me}
+    dir:
+      image: java/image/
+      video: java/video/
+      file: java/file/
+
+knowledge:
+  upload:
+    path: ${KNOWLEDGE_UPLOAD_PATH:uploads/knowledge}
+  chunk:
+    max-size: 1000
+    overlap: 100
